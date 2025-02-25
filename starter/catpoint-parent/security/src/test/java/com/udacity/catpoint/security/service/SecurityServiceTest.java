@@ -60,7 +60,7 @@ public class SecurityServiceTest {
     //    If alarm is armed and a sensor becomes activated, put the system into pending alarm status.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void setAlarmAndSensorToGetPendingAlarm(ArmingStatus armingStatus){
+    void sensorActivated_alarmArmed_alarmStatusPending(ArmingStatus armingStatus){
         securityService.addSensor(sensor);
         Set<Sensor> sensors =securityService.getSensors();
         assertTrue(sensors.contains(sensor));
@@ -72,7 +72,7 @@ public class SecurityServiceTest {
     //    If alarm is armed and a sensor becomes activated and the system is already pending alarm, set the alarm status to alarm.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void setAlarmAndSensorAndSystemPendingToGetAlarm(ArmingStatus armingStatus){
+    void sensorActivated_alarmArmedAndStatusPending_alarmStatusAlarm(ArmingStatus armingStatus){
         securityService.addSensor(sensor);
         securityService.setArmingStatus(armingStatus);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -82,7 +82,7 @@ public class SecurityServiceTest {
     }
     //    If pending alarm and all sensors are inactive, return to no alarm state.
     @Test
-    void pendingAlarmAndInactiveSensorReturnNoAlarm(){
+    void allSensorsInactive_alarmStatusPending_alarmStatusNoAlarm(){
         Set<Sensor> sensors = getSensorSet(false);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -97,7 +97,7 @@ public class SecurityServiceTest {
 //    If alarm is active, change in sensor state should not affect the alarm state.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void alarmAndSensorNoChange(ArmingStatus armingStatus){
+    void sensorStateChanged_alarmStatusAlarm_noChange(ArmingStatus armingStatus){
         securityService.addSensor(sensor);
         securityService.setArmingStatus(armingStatus);
         securityService.setAlarmStatus(AlarmStatus.ALARM);
@@ -107,7 +107,7 @@ public class SecurityServiceTest {
 //    If a sensor is activated while already active and the system is in pending state, change it to alarm state.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void sensorOnPendingToAlarm(ArmingStatus armingStatus){
+    void sensorActivatedAgain_alarmStatusPending_alarmStatusAlarm(ArmingStatus armingStatus){
         securityService.addSensor(sensor);
         securityService.setArmingStatus(armingStatus);
         securityService.setAlarmStatus(AlarmStatus.PENDING_ALARM);
@@ -127,7 +127,7 @@ private static Stream<Arguments> provideEnums() {
 }
     @ParameterizedTest(name="[{index}] {0} {1}")
     @MethodSource("provideEnums")
-    void sensorDeactivateNoChangeAlarm(AlarmStatus alarmStatus, ArmingStatus armingStatus){
+    void sensorDeactivatedWhileInactive_noChange(AlarmStatus alarmStatus, ArmingStatus armingStatus){
         securityService.addSensor(sensor);
         securityService.changeSensorActivationStatus(sensor,false);
         securityService.setArmingStatus(armingStatus);
@@ -138,7 +138,7 @@ private static Stream<Arguments> provideEnums() {
 
 //    If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
     @Test
-    void catDetectedToAlarm(){
+    void catDetected_alarmArmedHome_alarmStatusAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.addSensor(sensor);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
@@ -147,7 +147,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
     @Test
-    void noCatDetectedToNoAlarm(){
+    void noCatDetected_noActiveSensors_alarmStatusNoAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
         Set<Sensor> sensors = getSensorSet(false);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
@@ -158,7 +158,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    If the system is disarmed, set the status to no alarm.
     @Test
-    void disarmedToNoAlarm(){
+    void systemDisarmed_alarmStatusNoAlarm(){
         securityService.addSensor(sensor);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -166,7 +166,7 @@ private static Stream<Arguments> provideEnums() {
 //    If the system is armed, reset all sensors to inactive.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void armedToDeactivateSensors(ArmingStatus armingStatus){
+    void systemArmed_allSensorsInactive(ArmingStatus armingStatus){
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         Set<Sensor> sensors = getSensorSet(true);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
@@ -176,7 +176,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    If the system is armed-home while the camera shows a cat, set the alarm status to alarm.alarm
     @Test
-    void armedCatToAlarm(){
+    void systemArmedHome_catDetected_alarmStatusAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -186,7 +186,7 @@ private static Stream<Arguments> provideEnums() {
 
     //    Arm the system and activate two sensors; the system should go to the Alarm state. Then deactivate one sensor, and the system should not change the alarm state.
     @Test
-    void sensorChangeToAlarm(){
+    void twoSensorsActivated_alarmArmed_alarmStatusAlarm_oneSensorDeactivated_noChange(){
         Set<Sensor> sensors = getSensorSet(false);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
         securityService.setArmingStatus(ArmingStatus.ARMED_AWAY);
@@ -202,7 +202,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    Arm the system, scan a picture until it detects a cat, the system should go to ALARM state, scan a picture again until there is no cat, the system should go to NO ALARM state.
     @Test
-    void catToAlarmChange(){
+    void systemArmed_catDetected_alarmStatusAlarm_noCatDetected_alarmStatusNoAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -214,7 +214,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    Even when a cat is detected in the image, the system should go to the NO ALARM state when deactivated.
     @Test
-    void catDisarmedToNoAlarm(){
+    void systemDeactivated_catDetected_alarmStatusNoAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
@@ -223,7 +223,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    Arm the system, scan a picture until it detects a cat, activate a sensor, and scan a picture again until there is no cat; the system should still be in the alarm state as there is a sensor active.
     @Test
-    void catAndSensorToAlarm(){
+    void systemArmed_catDetected_sensorActivated_noCatDetected_alarmStatusAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.addSensor(sensor);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
@@ -238,7 +238,7 @@ private static Stream<Arguments> provideEnums() {
 //    Sensors were not reset to inactive when the system was armed: put all sensors to the active state when disarmed, then put the system in the armed state; sensors should be inactivated.
     @ParameterizedTest
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
-    void disarmedToDeactivateSensor(ArmingStatus armingStatus){
+    void sensorsActivated_systemDisarmed_thenArmed_sensorsInactive(ArmingStatus armingStatus){
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         Set<Sensor> sensors = getSensorSet(true);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
@@ -248,7 +248,7 @@ private static Stream<Arguments> provideEnums() {
     }
 //    Put the system as disarmed, scan a picture until it detects a cat after that, make it armed, it should make the system in the ALARM state.
     @Test
-    void catAndArmedToAlarm(){
+    void systemDisarmed_catDetected_systemArmed_alarmStatusAlarm(){
         lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         securityService.processImage(mock(BufferedImage.class));
@@ -258,21 +258,21 @@ private static Stream<Arguments> provideEnums() {
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
     }
     @Test
-    public void addAndRemoveSensors() {
+    public void addRemoveSensors() {
         securityRepository.addSensor(sensor);
         assertTrue(securityService.getSensors().contains(sensor));
         securityService.removeSensor(sensor);
         assertFalse(securityService.getSensors().contains(sensor));
     }
     @Test
-    public void addAndRemoveListener() {
+    public void addRemoveListener() {
         StatusListener statusListener = mock(StatusListener.class);
         securityService.addStatusListener(statusListener);
         securityService.removeStatusListener(statusListener);
     }
 
     @Test
-    void testCoverage(){
+    void checkTestCoverage(){
         Set<Sensor> sensors = getSensorSet(false);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);

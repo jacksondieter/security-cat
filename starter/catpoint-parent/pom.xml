@@ -79,6 +79,24 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>4.9.1.0</version> <!-- Use the latest version -->
+          <configuration>
+            <outputDirectory>${project.build.directory}/site</outputDirectory>
+            <xmlOutput>true</xmlOutput>
+            <htmlOutput>true</htmlOutput>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+                <goal>spotbugs</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>

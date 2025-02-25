@@ -37,7 +37,7 @@ public class SecurityService {
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }else{
-            Set<Sensor> sensorSet = new HashSet<>(getSensors());
+            Set<Sensor> sensorSet = getSensors();
             sensorSet.forEach(sensor -> changeSensorActivationStatus(sensor,false));
         }
         securityRepository.setArmingStatus(armingStatus);
@@ -88,7 +88,7 @@ public class SecurityService {
         }
         switch(securityRepository.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
-            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
+            default -> setAlarmStatus(AlarmStatus.ALARM); //PENDING_ALARM
         }
     }
 
@@ -97,13 +97,13 @@ public class SecurityService {
      */
     private void handleSensorDeactivated() {
         switch(securityRepository.getAlarmStatus()) {
-            case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+            default -> setAlarmStatus(AlarmStatus.NO_ALARM); //PENDING_ALARM
         }
     }
 
     private boolean hasAnySensorActive(Sensor sensor){
-        Set<Sensor> allSensor = new HashSet<>(getSensors());
+        Set<Sensor> allSensor = getSensors();
         allSensor.remove(sensor);
         return allSensor.stream().noneMatch(Sensor::getActive);
     }
