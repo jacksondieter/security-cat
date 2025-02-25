@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -42,6 +43,11 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
             }.getType();
             sensors = gson.fromJson(sensorString, type);
         }
+    }
+    @Override
+    public void cleanAll() throws BackingStoreException {
+        prefs.clear();
+        prefs.flush();
     }
 
     @Override

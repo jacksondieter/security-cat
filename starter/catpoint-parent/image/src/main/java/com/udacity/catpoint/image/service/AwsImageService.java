@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  *      aws.secret=[your Secret access key]
  *      aws.region=[an aws region of choice. For example: us-east-2]
  */
-public class AwsImageService {
+public class AwsImageService implements ImageService{
 
     private Logger log = LoggerFactory.getLogger(AwsImageService.class);
 
@@ -64,7 +64,7 @@ public class AwsImageService {
      * Returns true if the provided image contains a cat.
      * @param image Image to scan
      * @param confidenceThreshhold Minimum threshhold to consider for cat. For example, 90.0f would require 90% confidence minimum
-     * @return
+     * @return boolean
      */
     public boolean imageContainsCat(BufferedImage image, float confidenceThreshhold) {
         Image awsImage = null;

@@ -9,3 +9,7 @@ target/
 
 # Java
 config.properties
+
+.DS_Store
+*/.DS_Store
+**/.DS_Store

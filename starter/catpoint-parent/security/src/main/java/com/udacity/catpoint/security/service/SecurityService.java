@@ -1,11 +1,11 @@
 package com.udacity.catpoint.security.service;
 
+import com.udacity.catpoint.image.service.ImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
 import com.udacity.catpoint.security.data.ArmingStatus;
 import com.udacity.catpoint.security.data.SecurityRepository;
 import com.udacity.catpoint.security.data.Sensor;
-import com.udacity.catpoint.image.service.FakeImageService;
 
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
@@ -19,12 +19,11 @@ import java.util.Set;
  * class you will be writing unit tests for.
  */
 public class SecurityService {
-
-    private FakeImageService imageService;
-    private SecurityRepository securityRepository;
+    private final ImageService imageService;
+    private final SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
 
-    public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
+    public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
         this.securityRepository = securityRepository;
         this.imageService = imageService;
     }
@@ -37,6 +36,9 @@ public class SecurityService {
     public void setArmingStatus(ArmingStatus armingStatus) {
         if(armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
+        }else{
+            Set<Sensor> sensorSet = new HashSet<>(getSensors());
+            sensorSet.forEach(sensor -> changeSensorActivationStatus(sensor,false));
         }
         securityRepository.setArmingStatus(armingStatus);
     }
@@ -49,7 +51,7 @@ public class SecurityService {
     private void catDetected(Boolean cat) {
         if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
-        } else {
+        }else if(getSensors().stream().noneMatch(Sensor::getActive)){
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
@@ -100,6 +102,12 @@ public class SecurityService {
         }
     }
 
+    private boolean hasAnySensorActive(Sensor sensor){
+        Set<Sensor> allSensor = new HashSet<>(getSensors());
+        allSensor.remove(sensor);
+        return allSensor.stream().noneMatch(Sensor::getActive);
+    }
+
     /**
      * Change the activation status for the specified sensor and update alarm status if necessary.
      * @param sensor
@@ -108,7 +116,7 @@ public class SecurityService {
     public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
         if(!sensor.getActive() && active) {
             handleSensorActivated();
-        } else if (sensor.getActive() && !active) {
+        } else if (sensor.getActive() && !active && hasAnySensorActive(sensor)) {
             handleSensorDeactivated();
         }
         sensor.setActive(active);
