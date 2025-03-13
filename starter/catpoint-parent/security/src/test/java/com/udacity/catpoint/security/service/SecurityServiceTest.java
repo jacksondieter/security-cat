@@ -91,7 +91,7 @@ public class SecurityServiceTest {
         Sensor sensor1 = iterator.next();
         securityService.changeSensorActivationStatus(sensor1,true);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.PENDING_ALARM);
-        sensors.forEach(sensor-> securityService.changeSensorActivationStatus(sensor,false));
+        securityService.changeSensorActivationStatus(sensor1,false);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
     }
 //    If alarm is active, change in sensor state should not affect the alarm state.
@@ -139,7 +139,7 @@ private static Stream<Arguments> provideEnums() {
 //    If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
     @Test
     void catDetected_alarmArmedHome_alarmStatusAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.addSensor(sensor);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         securityService.processImage(mock(BufferedImage.class));
@@ -148,7 +148,7 @@ private static Stream<Arguments> provideEnums() {
 //    If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
     @Test
     void noCatDetected_noActiveSensors_alarmStatusNoAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
         Set<Sensor> sensors = getSensorSet(false);
         sensors.forEach(sensor -> securityService.addSensor(sensor));
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
@@ -177,7 +177,7 @@ private static Stream<Arguments> provideEnums() {
 //    If the system is armed-home while the camera shows a cat, set the alarm status to alarm.alarm
     @Test
     void systemArmedHome_catDetected_alarmStatusAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
         securityService.processImage(mock(BufferedImage.class));
@@ -203,19 +203,19 @@ private static Stream<Arguments> provideEnums() {
 //    Arm the system, scan a picture until it detects a cat, the system should go to ALARM state, scan a picture again until there is no cat, the system should go to NO ALARM state.
     @Test
     void systemArmed_catDetected_alarmStatusAlarm_noCatDetected_alarmStatusNoAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
         securityService.processImage(mock(BufferedImage.class));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
         securityService.processImage(mock(BufferedImage.class));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
     }
 //    Even when a cat is detected in the image, the system should go to the NO ALARM state when deactivated.
     @Test
     void systemDeactivated_catDetected_alarmStatusNoAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
         securityService.processImage(mock(BufferedImage.class));
@@ -224,14 +224,14 @@ private static Stream<Arguments> provideEnums() {
 //    Arm the system, scan a picture until it detects a cat, activate a sensor, and scan a picture again until there is no cat; the system should still be in the alarm state as there is a sensor active.
     @Test
     void systemArmed_catDetected_sensorActivated_noCatDetected_alarmStatusAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.addSensor(sensor);
         securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
         securityService.changeSensorActivationStatus(sensor,true);
         securityService.processImage(mock(BufferedImage.class));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(false);
         securityService.processImage(mock(BufferedImage.class));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
     }
@@ -249,7 +249,7 @@ private static Stream<Arguments> provideEnums() {
 //    Put the system as disarmed, scan a picture until it detects a cat after that, make it armed, it should make the system in the ALARM state.
     @Test
     void systemDisarmed_catDetected_systemArmed_alarmStatusAlarm(){
-        lenient().when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         securityService.processImage(mock(BufferedImage.class));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
