@@ -5,8 +5,8 @@
 
 # Maven
 log/
-target/
-!target/site/spotbugs.html
+
+
 
 # Java
 config.properties

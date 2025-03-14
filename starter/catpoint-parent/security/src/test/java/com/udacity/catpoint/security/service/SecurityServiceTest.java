@@ -178,9 +178,9 @@ private static Stream<Arguments> provideEnums() {
     @Test
     void systemArmedHome_catDetected_alarmStatusAlarm(){
         when(imageService.imageContainsCat(any(),anyFloat())).thenReturn(true);
-        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
-        assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
         securityService.processImage(mock(BufferedImage.class));
+        assertEquals(securityService.getAlarmStatus(),AlarmStatus.NO_ALARM);
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
     }
 
@@ -258,13 +258,6 @@ private static Stream<Arguments> provideEnums() {
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
     }
     @Test
-    public void addRemoveSensors() {
-        securityRepository.addSensor(sensor);
-        assertTrue(securityService.getSensors().contains(sensor));
-        securityService.removeSensor(sensor);
-        assertFalse(securityService.getSensors().contains(sensor));
-    }
-    @Test
     public void addRemoveListener() {
         StatusListener statusListener = mock(StatusListener.class);
         securityService.addStatusListener(statusListener);
@@ -286,5 +279,7 @@ private static Stream<Arguments> provideEnums() {
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.ALARM);
         sensors.forEach(sensor-> securityService.changeSensorActivationStatus(sensor,false));
         assertEquals(securityService.getAlarmStatus(),AlarmStatus.PENDING_ALARM);
+        securityService.removeSensor(sensor2);
+        assertFalse(securityService.getSensors().contains(sensor2));
     }
 }
